@@ -210,14 +210,10 @@
                                 <div class="w-10 h-5 bg-zinc-300 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-zinc-600 peer-checked:bg-black dark:peer-checked:bg-white dark:peer-checked:after:bg-black"></div>
                             </label>
                         </div>
-                        
-                        <!-- Sign Out Button -->
-                        <div class="pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-700">
-                            <button id="sign-out-btn" class="w-full text-left flex items-center gap-2 text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 transition py-2">
-                                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                                <span class="text-xs font-semibold">Sign Out</span>
-                            </button>
-                        </div>
+                        <!-- Added Sign Out Button -->
+                        <button id="sign-out-btn" class="w-full text-left text-xs font-bold text-red-500 mt-2 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 transition hover:text-red-600">
+                            Sign Out
+                        </button>
                     </div>
                 </div>
             </div>
@@ -929,6 +925,12 @@
                     saveBtn.innerHTML = `<i class="fa-solid fa-check text-xs"></i><span>Save Username</span>`;
                 }
             });
+            
+            // Sign Out Listener
+            document.getElementById('sign-out-btn').addEventListener('click', () => {
+                localStorage.removeItem('userEmail');
+                window.location.href = 'login_or_signup_page.html';
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1030,12 +1032,6 @@
             document.getElementById('refresh-feed-btn').addEventListener('click', () => {
                 loadFeedData();
                 showToast("Feed synced!");
-            });
-
-            // Sign Out Listener
-            document.getElementById('sign-out-btn').addEventListener('click', () => {
-                localStorage.removeItem('userEmail');
-                window.location.href = 'login_or_signup_page.html';
             });
         });
     </script>

@@ -87,10 +87,12 @@
     </main>
 
     <script>
-        // Redirect if already logged in
+        // --- REDIRECT LOGIC MODIFIED HERE ---
+        // Redirect if already logged in using replace instead of href
         if (localStorage.getItem('userEmail')) {
-            window.location.href = 'home_page.html';
+            window.location.replace('home_page.html');
         }
+        // ------------------------------------
 
         document.addEventListener('DOMContentLoaded', () => {
             // State variable tracking if the form is currently in "Sign Up" mode
@@ -176,8 +178,11 @@
                     if (data.success) {
                         // Store the logged-in email in local storage for the home page profile
                         localStorage.setItem('userEmail', email);
-                        // Redirect user directly to home_page.html
-                        window.location.href = 'home_page.html';
+                        
+                        // --- REDIRECT LOGIC MODIFIED HERE ---
+                        // Redirect user directly to home_page.html using replace to prevent back-button loops
+                        window.location.replace('home_page.html');
+                        // ------------------------------------
                     } else {
                         // Display error returned by server or database check
                         showError(data.message || 'Invalid email or password.');

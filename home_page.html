@@ -333,6 +333,12 @@
     </div>
 
     <script>
+        // --- AUTHENTICATION GUARD ADDED HERE ---
+        if (!localStorage.getItem('userEmail')) {
+            window.location.replace('login_or_signup_page.html');
+        }
+        // ---------------------------------------
+
         // ==========================================
         // SUPABASE & APPLICATION LOGIC
         // ==========================================
@@ -792,7 +798,7 @@
                         ).join('') : '<p class="text-zinc-400 py-1">No posts yet.</p>';
                     }
 
-                    // Fetch user's comments using 'used_id' (Removed failing cards(title) join to prevent silent errors)
+                    // Fetch user's comments using 'used_id'
                     const { data: userComments, error: commentsError } = await supabaseClient
                         .from('comments')
                         .select('content, card_id')
@@ -1048,11 +1054,12 @@
                 showToast("Feed synced!");
             });
 
-            // Sign Out Listener
+            // --- SIGN OUT LISTENER MODIFIED HERE ---
             document.getElementById('sign-out-btn').addEventListener('click', () => {
-                localStorage.removeItem('userEmail');
-                window.location.href = 'login_or_signup_page.html';
+                localStorage.clear(); // Clears all user session data including email and username
+                window.location.replace('login_or_signup_page.html');
             });
+            // ---------------------------------------
         });
     </script>
 </body>

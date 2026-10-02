@@ -87,6 +87,11 @@
     </main>
 
     <script>
+        // Redirect if already logged in
+        if (localStorage.getItem('userEmail')) {
+            window.location.href = 'home_page.html';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // State variable tracking if the form is currently in "Sign Up" mode
             let isSignUpMode = true;

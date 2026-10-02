@@ -210,6 +210,14 @@
                                 <div class="w-10 h-5 bg-zinc-300 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-zinc-600 peer-checked:bg-black dark:peer-checked:bg-white dark:peer-checked:after:bg-black"></div>
                             </label>
                         </div>
+                        
+                        <!-- Sign Out Button -->
+                        <div class="pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-700">
+                            <button id="sign-out-btn" class="w-full text-left flex items-center gap-2 text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 transition py-2">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                <span class="text-xs font-semibold">Sign Out</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -333,7 +341,6 @@
 
         let supabaseClient = null;
         let isSupabaseConfigured = false;
-        let currentUsername = null;
 
         if (SUPABASE_URL && SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE' && 
             SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY_HERE') {
@@ -400,30 +407,6 @@
         let currentCategory = 'all';
         let searchQuery = '';
 
-        async function getCurrentUsername() {
-            const userEmail = localStorage.getItem('userEmail');
-            if (!userEmail) return 'Guest';
-            if (currentUsername) return currentUsername;
-
-            if (isSupabaseConfigured && supabaseClient) {
-                try {
-                    const { data } = await supabaseClient
-                        .from('logins')
-                        .select('username')
-                        .eq('email', userEmail)
-                        .maybeSingle();
-
-                    if (data && data.username) {
-                        currentUsername = data.username;
-                        return currentUsername;
-                    }
-                } catch (e) {
-                    console.warn("Could not fetch user info", e);
-                }
-            }
-            return userEmail.split('@')[0];
-        }
-
         async function loadFeedData() {
             if (isSupabaseConfigured && supabaseClient) {
                 try {
@@ -441,16 +424,13 @@
 
                     if (!commentsError && comments) {
                         cards.forEach(card => {
-                            card.comments = comments.filter(c => c.card_id === card.id).map(c => {
-                                const authorName = c.author || c.used_id || 'Anonymous';
-                                return {
-                                    id: c.id,
-                                    user: authorName,
-                                    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(authorName)}`,
-                                    text: c.content,
-                                    timestamp: c.created_at ? new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'
-                                };
-                            });
+                            card.comments = comments.filter(c => c.card_id === card.id).map(c => ({
+                                id: c.id,
+                                user: c.author || 'Anonymous',
+                                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.author || c.id}`,
+                                text: c.content,
+                                timestamp: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            }));
                         });
                     } else {
                         cards.forEach(c => c.comments = c.comments || []);
@@ -648,12 +628,13 @@
             if (!text) return;
 
             const userEmail = localStorage.getItem('userEmail') || 'Guest';
-            const username = await getCurrentUsername();
+            // Get dynamically saved username or default to email prefix
+            const currentUsername = localStorage.getItem('currentUsername') || (userEmail !== 'Guest' ? userEmail.split('@')[0] : 'Guest');
 
             const newComment = {
                 id: Date.now(),
-                user: username,
-                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}`,
+                user: currentUsername,
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUsername}`,
                 text: text,
                 timestamp: "Just now"
             };
@@ -662,7 +643,7 @@
                 try {
                     await supabaseClient
                         .from('comments')
-                        .insert([{ card_id: cardId, author: username, content: text, used_id: userEmail }]);
+                        .insert([{ card_id: cardId, author: currentUsername, content: text, used_id: userEmail }]);
                 } catch (err) {
                     console.warn('Could not post comment to Supabase:', err);
                 }
@@ -811,30 +792,26 @@
                         ).join('') : '<p class="text-zinc-400 py-1">No posts yet.</p>';
                     }
 
-                    // Fetch user's comments using 'used_id' directly and map titles locally
+                    // Fetch user's comments using 'used_id' (Removed failing cards(title) join to prevent silent errors)
                     const { data: userComments, error: commentsError } = await supabaseClient
                         .from('comments')
-                        .select('content, card_id, created_at')
+                        .select('content, card_id')
                         .eq('used_id', userEmail)
                         .order('created_at', { ascending: false });
 
                     if (!commentsError && userComments) {
-                        if (userComments.length > 0) {
-                            commentsList.innerHTML = userComments.map(c => {
-                                const parentCard = dbFeed.find(card => String(card.id) === String(c.card_id));
-                                const postTitle = parentCard ? parentCard.title : 'Post #' + c.card_id;
-                                return `
-                                    <div class="p-2.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                                        <p class="text-xs text-black dark:text-white font-medium">"${c.content}"</p>
-                                        <p class="text-[10px] mt-1 text-zinc-500 truncate">On: ${postTitle}</p>
-                                    </div>
-                                `;
-                            }).join('');
-                        } else {
-                            commentsList.innerHTML = '<p class="text-zinc-400 py-1">No comments yet.</p>';
-                        }
-                    } else {
-                        commentsList.innerHTML = '<p class="text-zinc-400 py-1">Failed to fetch comments.</p>';
+                        commentsList.innerHTML = userComments.length > 0 ? userComments.map(c => {
+                            // Match card title locally instead of relying on Supabase joins that might lack foreign keys
+                            const matchedCard = dbFeed.find(card => String(card.id) === String(c.card_id));
+                            const postTitle = matchedCard ? matchedCard.title : 'Unknown Post';
+                            
+                            return `<div class="p-2.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                                <p class="text-xs text-black dark:text-white font-medium">"${c.content}"</p>
+                                <p class="text-[10px] mt-1 text-zinc-500 truncate">On: ${postTitle}</p>
+                            </div>`;
+                        }).join('') : '<p class="text-zinc-400 py-1">No comments yet.</p>';
+                    } else if (commentsError) {
+                        console.error('Error fetching comments:', commentsError);
                     }
                 } catch (err) {
                     console.error('Error fetching user activity:', err);
@@ -854,6 +831,8 @@
             const usernameDisplay = document.getElementById('profile-username-display');
             const usernameInput = document.getElementById('username-input');
             const themeToggle = document.getElementById('theme-toggle');
+            
+            let currentUsername = userEmail ? userEmail.split('@')[0] : "Guest User";
 
             if (userEmail) {
                 emailDisplay.textContent = userEmail;
@@ -876,7 +855,6 @@
                             usernameDisplay.textContent = data.username;
                             usernameInput.value = data.username;
                         } else {
-                            currentUsername = userEmail.split('@')[0];
                             usernameDisplay.textContent = currentUsername;
                         }
 
@@ -890,18 +868,18 @@
                             }
                         }
                     } else {
-                        currentUsername = userEmail ? userEmail.split('@')[0] : "Guest User";
                         usernameDisplay.textContent = currentUsername;
                     }
                 } catch (err) {
                     console.warn('Could not fetch user profile data:', err);
-                    currentUsername = userEmail ? userEmail.split('@')[0] : "Guest User";
                     usernameDisplay.textContent = currentUsername;
                 }
             } else {
-                currentUsername = userEmail ? userEmail.split('@')[0] : "Guest User";
                 usernameDisplay.textContent = currentUsername;
             }
+            
+            // Save initial valid username to localStorage to use dynamically for new comments
+            localStorage.setItem('currentUsername', currentUsername);
 
             // Theme Switcher Listener that updates Supabase directly
             themeToggle.addEventListener('change', async (e) => {
@@ -949,8 +927,8 @@
 
                         if (error) throw error;
 
-                        currentUsername = newUsername;
                         usernameDisplay.textContent = newUsername;
+                        localStorage.setItem('currentUsername', newUsername);
                         showToast("Username updated!");
                     } catch (err) {
                         console.error('Error updating username in Supabase:', err);
@@ -960,8 +938,8 @@
                         saveBtn.innerHTML = `<i class="fa-solid fa-check text-xs"></i><span>Save Username</span>`;
                     }
                 } else {
-                    currentUsername = newUsername;
                     usernameDisplay.textContent = newUsername;
+                    localStorage.setItem('currentUsername', newUsername);
                     showToast("Username updated locally!");
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = `<i class="fa-solid fa-check text-xs"></i><span>Save Username</span>`;
@@ -1068,6 +1046,12 @@
             document.getElementById('refresh-feed-btn').addEventListener('click', () => {
                 loadFeedData();
                 showToast("Feed synced!");
+            });
+
+            // Sign Out Listener
+            document.getElementById('sign-out-btn').addEventListener('click', () => {
+                localStorage.removeItem('userEmail');
+                window.location.href = 'login_or_signup_page.html';
             });
         });
     </script>

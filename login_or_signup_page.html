@@ -154,9 +154,8 @@
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
                 
-                // Point directly to the Node server running on port 3000
-                const SERVER_URL = 'http://localhost:3000';
-                const endpoint = isSignUpMode ? `${SERVER_URL}/api/signup` : `${SERVER_URL}/api/signin`;
+                // Use relative paths to connect to the active server domain
+                const endpoint = isSignUpMode ? `/api/signup` : `/api/signin`;
 
                 try {
                     const response = await fetch(endpoint, {

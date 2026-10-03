@@ -785,15 +785,20 @@
                     // Fetch user's posts using 'used_id'
                     const { data: userPosts, error: postsError } = await supabaseClient
                         .from('cards')
-                        .select('title, category')
+                        .select('id, title, category')
                         .eq('used_id', userEmail)
                         .order('created_at', { ascending: false });
 
                     if (!postsError && userPosts) {
                         postsList.innerHTML = userPosts.length > 0 ? userPosts.map(p => 
-                            `<div class="p-2.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                                <p class="font-semibold text-black dark:text-white truncate text-xs">${p.title}</p>
-                                <p class="text-[10px] mt-1 text-zinc-500 font-medium uppercase tracking-wider">${p.category}</p>
+                            `<div class="p-2.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 flex items-center justify-between gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-black dark:text-white truncate text-xs">${p.title}</p>
+                                    <p class="text-[10px] mt-0.5 text-zinc-500 font-medium uppercase tracking-wider">${p.category}</p>
+                                </div>
+                                <button onclick="deleteUserPost('${p.id}')" class="text-rose-500 hover:text-rose-600 p-1.5 transition rounded-lg hover:bg-rose-500/10" title="Delete Post">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
                             </div>`
                         ).join('') : '<p class="text-zinc-400 py-1">No posts yet.</p>';
                     }
@@ -801,7 +806,7 @@
                     // Fetch user's comments using 'used_id'
                     const { data: userComments, error: commentsError } = await supabaseClient
                         .from('comments')
-                        .select('content, card_id')
+                        .select('id, content, card_id')
                         .eq('used_id', userEmail)
                         .order('created_at', { ascending: false });
 
@@ -811,9 +816,14 @@
                             const matchedCard = dbFeed.find(card => String(card.id) === String(c.card_id));
                             const postTitle = matchedCard ? matchedCard.title : 'Unknown Post';
                             
-                            return `<div class="p-2.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                                <p class="text-xs text-black dark:text-white font-medium">"${c.content}"</p>
-                                <p class="text-[10px] mt-1 text-zinc-500 truncate">On: ${postTitle}</p>
+                            return `<div class="p-2.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 flex items-center justify-between gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs text-black dark:text-white font-medium">"${c.content}"</p>
+                                    <p class="text-[10px] mt-0.5 text-zinc-500 truncate">On: ${postTitle}</p>
+                                </div>
+                                <button onclick="deleteUserComment('${c.id}', '${c.card_id}')" class="text-rose-500 hover:text-rose-600 p-1.5 transition rounded-lg hover:bg-rose-500/10" title="Delete Comment">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
                             </div>`;
                         }).join('') : '<p class="text-zinc-400 py-1">No comments yet.</p>';
                     } else if (commentsError) {
@@ -825,6 +835,70 @@
             } else {
                 postsList.innerHTML = '<p class="text-zinc-400 py-1">No posts available in offline mode.</p>';
                 commentsList.innerHTML = '<p class="text-zinc-400 py-1">No comments available in offline mode.</p>';
+            }
+        }
+
+        // ==========================================
+        // DELETE POST AND COMMENT FUNCTIONS
+        // ==========================================
+        async function deleteUserPost(postId) {
+            if (!confirm("Are you sure you want to delete this post?")) return;
+
+            if (isSupabaseConfigured && supabaseClient) {
+                try {
+                    // First delete all associated comments for this post
+                    await supabaseClient.from('comments').delete().eq('card_id', postId);
+
+                    // Then delete the post/card
+                    const { error } = await supabaseClient
+                        .from('cards')
+                        .delete()
+                        .eq('id', postId);
+
+                    if (error) throw error;
+
+                    showToast("Post deleted successfully!");
+                    await loadFeedData();
+                    await loadUserActivity();
+                } catch (err) {
+                    console.error('Error deleting post from Supabase:', err);
+                    showToast("Failed to delete post.");
+                }
+            } else {
+                dbFeed = dbFeed.filter(item => String(item.id) !== String(postId));
+                renderFeed();
+                loadUserActivity();
+                showToast("Post deleted!");
+            }
+        }
+
+        async function deleteUserComment(commentId, cardId) {
+            if (!confirm("Are you sure you want to delete this comment?")) return;
+
+            if (isSupabaseConfigured && supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('comments')
+                        .delete()
+                        .eq('id', commentId);
+
+                    if (error) throw error;
+
+                    showToast("Comment deleted successfully!");
+                    await loadFeedData();
+                    await loadUserActivity();
+                } catch (err) {
+                    console.error('Error deleting comment from Supabase:', err);
+                    showToast("Failed to delete comment.");
+                }
+            } else {
+                const card = dbFeed.find(item => String(item.id) === String(cardId));
+                if (card) {
+                    card.comments = card.comments.filter(c => String(c.id) !== String(commentId));
+                }
+                renderFeed();
+                loadUserActivity();
+                showToast("Comment deleted!");
             }
         }
 

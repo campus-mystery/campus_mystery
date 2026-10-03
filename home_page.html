@@ -486,6 +486,7 @@
             card.dataset.id = item.id;
 
             const selectedOption = userSelections[item.id];
+            const hasVoted = Boolean(selectedOption);
 
             const formattedOptions = item.options.map((opt, idx) => {
                 if (typeof opt === 'string') {
@@ -495,29 +496,35 @@
                 return opt;
             });
 
-            // Calculate vote distribution if the user has selected an option
-            let optionStats = {};
-            let maxVotes = -1;
-            let minVotes = Infinity;
-            const totalVotes = Array.isArray(item.poll) ? item.poll.length : 0;
-
-            if (selectedOption) {
-                formattedOptions.forEach(opt => {
-                    optionStats[opt.id] = 0;
+            // Calculate vote distribution & rankings if user has selected an option
+            let pollStats = {};
+            if (hasVoted) {
+                const totalVotes = item.poll.length || 1;
+                const voteCounts = {};
+                
+                formattedOptions.forEach(opt => { voteCounts[opt.id] = 0; });
+                item.poll.forEach(v => {
+                    if (Array.isArray(v) && voteCounts.hasOwnProperty(v[1])) {
+                        voteCounts[v[1]]++;
+                    }
                 });
 
-                if (Array.isArray(item.poll)) {
-                    item.poll.forEach(vote => {
-                        if (Array.isArray(vote) && vote[1] && optionStats[vote[1]] !== undefined) {
-                            optionStats[vote[1]]++;
-                        }
-                    });
-                }
+                const sortedCounts = Object.entries(voteCounts).sort((a, b) => b[1] - a[1]);
+                const maxCount = sortedCounts[0][1];
+                const minCount = sortedCounts[sortedCounts.length - 1][1];
 
                 formattedOptions.forEach(opt => {
-                    const count = optionStats[opt.id];
-                    if (count > maxVotes) maxVotes = count;
-                    if (count < minVotes) minVotes = count;
+                    const count = voteCounts[opt.id] || 0;
+                    const percent = Math.round((count / totalVotes) * 100);
+                    
+                    let colorClass = "bg-amber-500"; // Yellow for middle choices
+                    if (count === maxCount && maxCount > 0) {
+                        colorClass = "bg-emerald-500"; // Most selected (Green)
+                    } else if (count === minCount) {
+                        colorClass = "bg-rose-500"; // Least selected (Red)
+                    }
+
+                    pollStats[opt.id] = { percent, colorClass };
                 });
             }
 
@@ -540,16 +547,39 @@
                     </div>
 
                     <div class="space-y-2 pt-1">
-                        <div class="flex justify-between items-center mb-2">
-                            <p class="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Select Answer / Option:</p>
-                            ${selectedOption ? `<span class="text-[11px] font-medium text-zinc-500">${totalVotes} total vote${totalVotes === 1 ? '' : 's'}</span>` : ''}
-                        </div>
+                        <p class="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2">Select Answer / Option:</p>
                         <div class="grid grid-cols-1 gap-2">
                             ${formattedOptions.map(opt => {
                                 const isSelected = selectedOption === opt.id;
+                                
+                                if (hasVoted) {
+                                    const stats = pollStats[opt.id];
+                                    const borderStyle = isSelected 
+                                        ? "border-black dark:border-white font-semibold" 
+                                        : "border-zinc-200 dark:border-zinc-800 opacity-90";
 
-                                if (!selectedOption) {
-                                    // Default button before user selects any option
+                                    return `
+                                        <button onclick="handleOptionSelect('${item.id}', '${opt.id}')" 
+                                            class="relative w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between group overflow-hidden bg-zinc-50 dark:bg-zinc-900 ${borderStyle}">
+                                            
+                                            <!-- Animated Progress Bar Container -->
+                                            <div class="absolute inset-y-0 left-0 ${stats.colorClass} opacity-20 transition-all duration-700 ease-out" style="width: ${stats.percent}%;"></div>
+                                            
+                                            <span class="relative z-10 flex items-center gap-2">
+                                                <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] font-bold">
+                                                    ${opt.id.toUpperCase()}
+                                                </span>
+                                                <span>${opt.label}</span>
+                                            </span>
+                                            
+                                            <div class="relative z-10 flex items-center gap-2 font-bold text-xs">
+                                                <span>${stats.percent}%</span>
+                                                ${isSelected ? '<i class="fa-solid fa-circle-check text-sm text-emerald-600 dark:text-emerald-400"></i>' : ''}
+                                            </div>
+                                        </button>
+                                    `;
+                                } else {
+                                    // Default Unvoted View
                                     return `
                                         <button onclick="handleOptionSelect('${item.id}', '${opt.id}')" 
                                             class="w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between group bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-600">
@@ -560,48 +590,6 @@
                                                 ${opt.label}
                                             </span>
                                             <i class="fa-regular fa-circle text-zinc-400 text-sm"></i>
-                                        </button>
-                                    `;
-                                } else {
-                                    // Calculate percentage and dynamic progress color
-                                    const count = optionStats[opt.id] || 0;
-                                    const percent = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-
-                                    let barBg = "bg-yellow-500";
-                                    let badgeColor = "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20";
-
-                                    if (maxVotes === minVotes) {
-                                        // All options tied
-                                        barBg = "bg-green-500";
-                                        badgeColor = "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20";
-                                    } else if (count === maxVotes) {
-                                        // Most selected option
-                                        barBg = "bg-emerald-500";
-                                        badgeColor = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
-                                    } else if (count === minVotes) {
-                                        // Least selected option
-                                        barBg = "bg-rose-500";
-                                        badgeColor = "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
-                                    }
-
-                                    return `
-                                        <button onclick="handleOptionSelect('${item.id}', '${opt.id}')" 
-                                            class="relative w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition overflow-hidden ${isSelected ? 'border-zinc-800 dark:border-zinc-200 ring-1 ring-zinc-800 dark:ring-zinc-200' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60'}">
-                                            <!-- Colored Background Progress Fill -->
-                                            <div class="absolute top-0 left-0 bottom-0 ${barBg} opacity-20 transition-all duration-500 pointer-events-none" style="width: ${percent}%;"></div>
-
-                                            <div class="relative z-10 flex items-center justify-between gap-2">
-                                                <span class="flex items-center gap-2 min-w-0">
-                                                    <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] font-bold shrink-0">
-                                                        ${opt.id.toUpperCase()}
-                                                    </span>
-                                                    <span class="truncate font-medium">${opt.label}</span>
-                                                    ${isSelected ? '<i class="fa-solid fa-circle-check text-xs ml-1 text-emerald-600 dark:text-emerald-400 shrink-0"></i>' : ''}
-                                                </span>
-                                                <span class="text-xs font-bold px-2 py-0.5 rounded-md border ${badgeColor} shrink-0">
-                                                    ${percent}%
-                                                </span>
-                                            </div>
                                         </button>
                                     `;
                                 }

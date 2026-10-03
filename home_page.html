@@ -495,6 +495,32 @@
                 return opt;
             });
 
+            // Calculate vote distribution if the user has selected an option
+            let optionStats = {};
+            let maxVotes = -1;
+            let minVotes = Infinity;
+            const totalVotes = Array.isArray(item.poll) ? item.poll.length : 0;
+
+            if (selectedOption) {
+                formattedOptions.forEach(opt => {
+                    optionStats[opt.id] = 0;
+                });
+
+                if (Array.isArray(item.poll)) {
+                    item.poll.forEach(vote => {
+                        if (Array.isArray(vote) && vote[1] && optionStats[vote[1]] !== undefined) {
+                            optionStats[vote[1]]++;
+                        }
+                    });
+                }
+
+                formattedOptions.forEach(opt => {
+                    const count = optionStats[opt.id];
+                    if (count > maxVotes) maxVotes = count;
+                    if (count < minVotes) minVotes = count;
+                });
+            }
+
             card.innerHTML = `
                 <div class="relative w-full h-36 sm:h-44 bg-zinc-100 dark:bg-zinc-800 overflow-hidden group">
                     <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover object-center" onerror="this.onerror=null; this.src='https://placehold.co/800x450/18181b/ffffff?text=Image+Unavailable';">
@@ -514,25 +540,71 @@
                     </div>
 
                     <div class="space-y-2 pt-1">
-                        <p class="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2">Select Answer / Option:</p>
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Select Answer / Option:</p>
+                            ${selectedOption ? `<span class="text-[11px] font-medium text-zinc-500">${totalVotes} total vote${totalVotes === 1 ? '' : 's'}</span>` : ''}
+                        </div>
                         <div class="grid grid-cols-1 gap-2">
                             ${formattedOptions.map(opt => {
                                 const isSelected = selectedOption === opt.id;
-                                const buttonStyle = isSelected 
-                                    ? "bg-black text-white dark:bg-white dark:text-black border-black dark:border-white font-semibold" 
-                                    : "bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-600";
-                                return `
-                                    <button onclick="handleOptionSelect('${item.id}', '${opt.id}')" 
-                                        class="w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between group ${buttonStyle}">
-                                        <span class="flex items-center gap-2">
-                                            <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] font-bold">
-                                                ${opt.id.toUpperCase()}
+
+                                if (!selectedOption) {
+                                    // Default button before user selects any option
+                                    return `
+                                        <button onclick="handleOptionSelect('${item.id}', '${opt.id}')" 
+                                            class="w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between group bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-600">
+                                            <span class="flex items-center gap-2">
+                                                <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] font-bold">
+                                                    ${opt.id.toUpperCase()}
+                                                </span>
+                                                ${opt.label}
                                             </span>
-                                            ${opt.label}
-                                        </span>
-                                        ${isSelected ? '<i class="fa-solid fa-circle-check text-sm"></i>' : '<i class="fa-regular fa-circle text-zinc-400 text-sm"></i>'}
-                                    </button>
-                                `;
+                                            <i class="fa-regular fa-circle text-zinc-400 text-sm"></i>
+                                        </button>
+                                    `;
+                                } else {
+                                    // Calculate percentage and dynamic progress color
+                                    const count = optionStats[opt.id] || 0;
+                                    const percent = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+
+                                    let barBg = "bg-yellow-500";
+                                    let badgeColor = "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20";
+
+                                    if (maxVotes === minVotes) {
+                                        // All options tied
+                                        barBg = "bg-green-500";
+                                        badgeColor = "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20";
+                                    } else if (count === maxVotes) {
+                                        // Most selected option
+                                        barBg = "bg-emerald-500";
+                                        badgeColor = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+                                    } else if (count === minVotes) {
+                                        // Least selected option
+                                        barBg = "bg-rose-500";
+                                        badgeColor = "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
+                                    }
+
+                                    return `
+                                        <button onclick="handleOptionSelect('${item.id}', '${opt.id}')" 
+                                            class="relative w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition overflow-hidden ${isSelected ? 'border-zinc-800 dark:border-zinc-200 ring-1 ring-zinc-800 dark:ring-zinc-200' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60'}">
+                                            <!-- Colored Background Progress Fill -->
+                                            <div class="absolute top-0 left-0 bottom-0 ${barBg} opacity-20 transition-all duration-500 pointer-events-none" style="width: ${percent}%;"></div>
+
+                                            <div class="relative z-10 flex items-center justify-between gap-2">
+                                                <span class="flex items-center gap-2 min-w-0">
+                                                    <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] font-bold shrink-0">
+                                                        ${opt.id.toUpperCase()}
+                                                    </span>
+                                                    <span class="truncate font-medium">${opt.label}</span>
+                                                    ${isSelected ? '<i class="fa-solid fa-circle-check text-xs ml-1 text-emerald-600 dark:text-emerald-400 shrink-0"></i>' : ''}
+                                                </span>
+                                                <span class="text-xs font-bold px-2 py-0.5 rounded-md border ${badgeColor} shrink-0">
+                                                    ${percent}%
+                                                </span>
+                                            </div>
+                                        </button>
+                                    `;
+                                }
                             }).join('')}
                         </div>
                     </div>

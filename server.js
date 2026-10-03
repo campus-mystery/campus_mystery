@@ -119,6 +119,36 @@ app.post('/api/logout', (req, res) => {
     });
 });
 
+// 5. DELETE COMMENT ROUTE
+app.delete('/api/comments/:id', async (req, res) => {
+    const commentId = req.params.id;
+
+    try {
+        // Note: .select() is added so Supabase returns the deleted record array
+        const { data, error } = await supabase
+            .from('comments') // Ensure this matches your Supabase table name
+            .delete()
+            .eq('id', commentId)
+            .select();
+
+        if (error) throw error;
+
+        // Check if any record was actually found and deleted
+        if (!data || data.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Comment not found or Row Level Security (RLS) prevented deletion.' 
+            });
+        }
+
+        res.json({ success: true, message: 'Comment deleted successfully' });
+
+    } catch (err) {
+        console.error('SERVER DELETE COMMENT ERROR:', err.message || err);
+        res.status(500).json({ success: false, message: err.message || 'Database error during comment deletion' });
+    }
+});
+
 // Dynamic port allocation for hosting platforms like Render
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

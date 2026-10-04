@@ -69,10 +69,10 @@
         </div>
     </header>
 
-    <!-- MAIN CONTENT AREA (Offset for fixed header and bottom nav) -->
+    <!-- MAIN CONTENT AREA -->
     <main class="max-w-3xl mx-auto px-4 pt-20 pb-28">
 
-        <!-- 1. RANK VIEW (Empty) -->
+        <!-- 1. RANK VIEW -->
         <section id="view-rank" class="tab-view hidden space-y-4">
             <div class="border border-zinc-200 dark:border-brand-darkBorder bg-brand-lightCard dark:bg-brand-darkCard rounded-2xl p-8 text-center">
                 <i class="fa-solid fa-trophy text-4xl mb-3 text-zinc-400"></i>
@@ -81,7 +81,7 @@
             </div>
         </section>
 
-        <!-- 2. QUESTS VIEW (Cards Feed) -->
+        <!-- 2. QUESTS VIEW -->
         <section id="view-quests" class="tab-view space-y-6">
             <div id="cards-container" class="space-y-6">
                 <!-- Loading Skeleton -->
@@ -126,14 +126,27 @@
         <section id="view-profile" class="tab-view hidden space-y-4">
             <div class="border border-zinc-200 dark:border-brand-darkBorder bg-brand-lightCard dark:bg-brand-darkCard rounded-2xl overflow-hidden">
                 <!-- Profile Header -->
-                <div class="p-5 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center font-bold text-lg">
-                        <i class="fa-solid fa-user"></i>
+                <div class="p-5 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <h2 id="profile-username-display" class="text-base font-bold text-black dark:text-white">Loading...</h2>
+                            <p id="profile-email-display" class="text-xs text-zinc-500 dark:text-zinc-400">Not logged in</p>
+                        </div>
                     </div>
-                    <div>
-                        <!-- Dynamically populated username and email display -->
-                        <h2 id="profile-username-display" class="text-base font-bold text-black dark:text-white">Loading...</h2>
-                        <p id="profile-email-display" class="text-xs text-zinc-500 dark:text-zinc-400">Not logged in</p>
+
+                    <!-- CREDIT DISPLAY & WATCH ADS BUTTON -->
+                    <div class="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl">
+                        <div class="flex items-center gap-1.5 text-amber-500 font-bold text-xs sm:text-sm">
+                            <i class="fa-solid fa-coins"></i>
+                            <span id="profile-credit-display">0</span>
+                        </div>
+                        <button onclick="handleWatchAd()" class="ml-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[11px] rounded-lg transition shadow-sm flex items-center gap-1">
+                            <i class="fa-solid fa-play text-[9px]"></i>
+                            <span>Watch Ads (+2)</span>
+                        </button>
                     </div>
                 </div>
 
@@ -147,7 +160,6 @@
                         </div>
                         <i id="edit-profile-chevron" class="fa-solid fa-chevron-down text-xs text-zinc-400 transition-transform duration-200"></i>
                     </button>
-                    <!-- Expandable Edit Profile Section -->
                     <div id="edit-profile-content" class="hidden p-3 pl-9 border-t border-zinc-100 dark:border-zinc-800/80 space-y-3 mt-1">
                         <div>
                             <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Username</label>
@@ -168,7 +180,6 @@
                         </div>
                         <i id="your-posts-chevron" class="fa-solid fa-chevron-down text-xs text-zinc-400 transition-transform duration-200"></i>
                     </button>
-                    <!-- Expandable Your Posts Section -->
                     <div id="your-posts-content" class="hidden p-3 border-t border-zinc-100 dark:border-zinc-800/80 mt-1">
                         <div id="your-posts-list" class="space-y-2 max-h-60 overflow-y-auto text-xs text-zinc-600 dark:text-zinc-400">
                             Loading your posts...
@@ -183,7 +194,6 @@
                         </div>
                         <i id="your-comments-chevron" class="fa-solid fa-chevron-down text-xs text-zinc-400 transition-transform duration-200"></i>
                     </button>
-                    <!-- Expandable Your Comments Section -->
                     <div id="your-comments-content" class="hidden p-3 border-t border-zinc-100 dark:border-zinc-800/80 mt-1">
                         <div id="your-comments-list" class="space-y-2 max-h-60 overflow-y-auto text-xs text-zinc-600 dark:text-zinc-400">
                             Loading your comments...
@@ -198,7 +208,6 @@
                         </div>
                         <i id="settings-chevron" class="fa-solid fa-chevron-down text-xs text-zinc-400 transition-transform duration-200"></i>
                     </button>
-                    <!-- Expandable Settings Content -->
                     <div id="settings-content" class="hidden p-3 pl-9 border-t border-zinc-100 dark:border-zinc-800/80 space-y-4 mt-1">
                         <div class="flex items-center justify-between">
                             <div class="space-y-0.5">
@@ -225,7 +234,7 @@
 
     </main>
 
-    <!-- BOTTOM NAVIGATION BAR (5 Tabs) -->
+    <!-- BOTTOM NAVIGATION BAR -->
     <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-brand-darkCard/90 backdrop-blur-md border-t border-zinc-200 dark:border-brand-darkBorder">
         <div class="max-w-md mx-auto px-4 py-2 flex items-center justify-between">
             <button onclick="switchTab('rank')" id="tab-btn-rank" class="nav-tab-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-black dark:hover:text-white py-1 px-3">
@@ -260,7 +269,7 @@
             <div class="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-plus-circle text-base"></i>
-                    <h3 class="font-bold text-black dark:text-white text-base">Add New Question</h3>
+                    <h3 class="font-bold text-black dark:text-white text-base">Add New Question (Costs 10 Credits)</h3>
                 </div>
                 <button id="close-modal-btn" class="text-zinc-400 hover:text-black dark:hover:text-white p-1 transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -325,10 +334,34 @@
                     </button>
                     <button type="submit" id="submit-card-btn" class="flex-1 py-2.5 bg-black text-white dark:bg-white dark:text-black text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <span>Save & Publish</span>
+                        <span>Save & Publish (-10 Credits)</span>
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- OUT OF CREDITS POPUP MODAL -->
+    <div id="no-credits-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-brand-darkCard rounded-2xl w-full max-w-sm p-6 shadow-2xl border border-zinc-200 dark:border-brand-darkBorder text-center space-y-4">
+            <div class="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-coins"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-black dark:text-white">Insufficient Credits</h3>
+                <p id="no-credits-msg" class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    You do not have enough credits to perform this action. Watch ads to earn credits!
+                </p>
+            </div>
+            <div class="flex flex-col gap-2 pt-2">
+                <button onclick="handleWatchAd(); closeNoCreditsModal();" class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Watch Ads (+2 Credits)</span>
+                </button>
+                <button onclick="closeNoCreditsModal()" class="w-full py-2.5 bg-zinc-100 dark:bg-zinc-800 text-black dark:text-white text-xs font-semibold rounded-xl transition">
+                    Maybe Later
+                </button>
+            </div>
         </div>
     </div>
 
@@ -343,9 +376,11 @@
         // ==========================================
         const SUPABASE_URL = 'https://ikdthvwzbxwigknxbhuw.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_0RDkZRmULpDK0Bc4DD0cDg_Izn_Pkdq';
+        const MONETAG_URL = 'https://omg10.com/4/11954551';
 
         let supabaseClient = null;
         let isSupabaseConfigured = false;
+        let userScore = 0; // State variable for credits
 
         if (SUPABASE_URL && SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE' && 
             SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY_HERE') {
@@ -415,6 +450,42 @@
         let currentCategory = 'all';
         let searchQuery = '';
 
+        // ==========================================
+        // SCORE & CREDIT MANAGEMENT
+        // ==========================================
+        async function updateScore(newScore) {
+            userScore = Math.max(0, newScore);
+            document.getElementById('profile-credit-display').textContent = userScore;
+
+            const userEmail = localStorage.getItem('userEmail');
+            if (isSupabaseConfigured && supabaseClient && userEmail) {
+                try {
+                    await supabaseClient
+                        .from('logins')
+                        .update({ score: userScore })
+                        .eq('email', userEmail);
+                } catch (err) {
+                    console.error("Failed to update score in Supabase:", err);
+                }
+            }
+        }
+
+        function handleWatchAd() {
+            window.open(MONETAG_URL, '_blank');
+            updateScore(userScore + 2);
+            showToast("+2 Credits added!");
+        }
+
+        function showNoCreditsModal(required, current) {
+            const msgEl = document.getElementById('no-credits-msg');
+            msgEl.textContent = `You need at least ${required} credit${required > 1 ? 's' : ''} to do this (You currently have ${current}). Watch ads to earn credits!`;
+            document.getElementById('no-credits-modal').classList.remove('hidden');
+        }
+
+        function closeNoCreditsModal() {
+            document.getElementById('no-credits-modal').classList.add('hidden');
+        }
+
         async function loadFeedData() {
             const currentUserEmail = localStorage.getItem('userEmail');
 
@@ -449,7 +520,6 @@
                     dbFeed = cards.map(c => {
                         const pollVotes = Array.isArray(c.poll) ? c.poll : [];
 
-                        // Check if active logged-in user has already selected an option
                         if (currentUserEmail) {
                             const existingVote = pollVotes.find(v => Array.isArray(v) && v[0] === currentUserEmail);
                             if (existingVote) {
@@ -486,7 +556,6 @@
             card.dataset.id = item.id;
 
             const selectedOption = userSelections[item.id];
-            const hasVoted = Boolean(selectedOption);
 
             const formattedOptions = item.options.map((opt, idx) => {
                 if (typeof opt === 'string') {
@@ -496,35 +565,28 @@
                 return opt;
             });
 
-            // Calculate vote distribution & rankings if user has selected an option
-            let pollStats = {};
-            if (hasVoted) {
-                const totalVotes = item.poll.length || 1;
-                const voteCounts = {};
-                
-                formattedOptions.forEach(opt => { voteCounts[opt.id] = 0; });
-                item.poll.forEach(v => {
-                    if (Array.isArray(v) && voteCounts.hasOwnProperty(v[1])) {
-                        voteCounts[v[1]]++;
-                    }
+            let optionStats = {};
+            let maxVotes = -1;
+            let minVotes = Infinity;
+            const totalVotes = Array.isArray(item.poll) ? item.poll.length : 0;
+
+            if (selectedOption) {
+                formattedOptions.forEach(opt => {
+                    optionStats[opt.id] = 0;
                 });
 
-                const sortedCounts = Object.entries(voteCounts).sort((a, b) => b[1] - a[1]);
-                const maxCount = sortedCounts[0][1];
-                const minCount = sortedCounts[sortedCounts.length - 1][1];
+                if (Array.isArray(item.poll)) {
+                    item.poll.forEach(vote => {
+                        if (Array.isArray(vote) && vote[1] && optionStats[vote[1]] !== undefined) {
+                            optionStats[vote[1]]++;
+                        }
+                    });
+                }
 
                 formattedOptions.forEach(opt => {
-                    const count = voteCounts[opt.id] || 0;
-                    const percent = Math.round((count / totalVotes) * 100);
-                    
-                    let colorClass = "bg-amber-500"; // Yellow for middle choices
-                    if (count === maxCount && maxCount > 0) {
-                        colorClass = "bg-emerald-500"; // Most selected (Green)
-                    } else if (count === minCount) {
-                        colorClass = "bg-rose-500"; // Least selected (Red)
-                    }
-
-                    pollStats[opt.id] = { percent, colorClass };
+                    const count = optionStats[opt.id];
+                    if (count > maxVotes) maxVotes = count;
+                    if (count < minVotes) minVotes = count;
                 });
             }
 
@@ -547,39 +609,15 @@
                     </div>
 
                     <div class="space-y-2 pt-1">
-                        <p class="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2">Select Answer / Option:</p>
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Select Answer / Option:</p>
+                            ${selectedOption ? `<span class="text-[11px] font-medium text-zinc-500">${totalVotes} total vote${totalVotes === 1 ? '' : 's'}</span>` : ''}
+                        </div>
                         <div class="grid grid-cols-1 gap-2">
                             ${formattedOptions.map(opt => {
                                 const isSelected = selectedOption === opt.id;
-                                
-                                if (hasVoted) {
-                                    const stats = pollStats[opt.id];
-                                    const borderStyle = isSelected 
-                                        ? "border-black dark:border-white font-semibold" 
-                                        : "border-zinc-200 dark:border-zinc-800 opacity-90";
 
-                                    return `
-                                        <button onclick="handleOptionSelect('${item.id}', '${opt.id}')" 
-                                            class="relative w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between group overflow-hidden bg-zinc-50 dark:bg-zinc-900 ${borderStyle}">
-                                            
-                                            <!-- Animated Progress Bar Container -->
-                                            <div class="absolute inset-y-0 left-0 ${stats.colorClass} opacity-20 transition-all duration-700 ease-out" style="width: ${stats.percent}%;"></div>
-                                            
-                                            <span class="relative z-10 flex items-center gap-2">
-                                                <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] font-bold">
-                                                    ${opt.id.toUpperCase()}
-                                                </span>
-                                                <span>${opt.label}</span>
-                                            </span>
-                                            
-                                            <div class="relative z-10 flex items-center gap-2 font-bold text-xs">
-                                                <span>${stats.percent}%</span>
-                                                ${isSelected ? '<i class="fa-solid fa-circle-check text-sm text-emerald-600 dark:text-emerald-400"></i>' : ''}
-                                            </div>
-                                        </button>
-                                    `;
-                                } else {
-                                    // Default Unvoted View
+                                if (!selectedOption) {
                                     return `
                                         <button onclick="handleOptionSelect('${item.id}', '${opt.id}')" 
                                             class="w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between group bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-600">
@@ -590,6 +628,43 @@
                                                 ${opt.label}
                                             </span>
                                             <i class="fa-regular fa-circle text-zinc-400 text-sm"></i>
+                                        </button>
+                                    `;
+                                } else {
+                                    const count = optionStats[opt.id] || 0;
+                                    const percent = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+
+                                    let barBg = "bg-yellow-500";
+                                    let badgeColor = "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20";
+
+                                    if (maxVotes === minVotes) {
+                                        barBg = "bg-green-500";
+                                        badgeColor = "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20";
+                                    } else if (count === maxVotes) {
+                                        barBg = "bg-emerald-500";
+                                        badgeColor = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+                                    } else if (count === minVotes) {
+                                        barBg = "bg-rose-500";
+                                        badgeColor = "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
+                                    }
+
+                                    return `
+                                        <button onclick="handleOptionSelect('${item.id}', '${opt.id}')" 
+                                            class="relative w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm transition overflow-hidden ${isSelected ? 'border-zinc-800 dark:border-zinc-200 ring-1 ring-zinc-800 dark:ring-zinc-200' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60'}">
+                                            <div class="absolute top-0 left-0 bottom-0 ${barBg} opacity-20 transition-all duration-500 pointer-events-none" style="width: ${percent}%;"></div>
+
+                                            <div class="relative z-10 flex items-center justify-between gap-2">
+                                                <span class="flex items-center gap-2 min-w-0">
+                                                    <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] font-bold shrink-0">
+                                                        ${opt.id.toUpperCase()}
+                                                    </span>
+                                                    <span class="truncate font-medium">${opt.label}</span>
+                                                    ${isSelected ? '<i class="fa-solid fa-circle-check text-xs ml-1 text-emerald-600 dark:text-emerald-400 shrink-0"></i>' : ''}
+                                                </span>
+                                                <span class="text-xs font-bold px-2 py-0.5 rounded-md border ${badgeColor} shrink-0">
+                                                    ${percent}%
+                                                </span>
+                                            </div>
                                         </button>
                                     `;
                                 }
@@ -688,7 +763,7 @@
         }
 
         // ==========================================
-        // POLL SELECTION & SUPABASE 2D ARRAY LOGIC
+        // POLL SELECTION (-1 CREDIT) & LOGIC
         // ==========================================
         async function handleOptionSelect(cardId, optionId) {
             const userEmail = localStorage.getItem('userEmail');
@@ -697,7 +772,18 @@
                 return;
             }
 
-            // Update UI state instantly
+            // Check for insufficient credits when placing a new vote
+            const isFirstVoteOnCard = !userSelections[cardId];
+            if (isFirstVoteOnCard && userScore < 1) {
+                showNoCreditsModal(1, userScore);
+                return;
+            }
+
+            // Deduct 1 credit for new vote
+            if (isFirstVoteOnCard) {
+                await updateScore(userScore - 1);
+            }
+
             userSelections[cardId] = optionId;
             
             const card = dbFeed.find(item => String(item.id) === String(cardId));
@@ -707,20 +793,16 @@
                 card.poll = [];
             }
 
-            // Check if user already exists in 2D array poll structure: [ [email, option], [email2, option2] ]
             const existingIndex = card.poll.findIndex(v => Array.isArray(v) && v[0] === userEmail);
 
             if (existingIndex !== -1) {
-                // Update existing choice
                 card.poll[existingIndex][1] = optionId;
             } else {
-                // Insert new pair
                 card.poll.push([userEmail, optionId]);
             }
 
             renderFeed();
 
-            // Save 2D Array payload to Supabase poll column
             if (isSupabaseConfigured && supabaseClient) {
                 try {
                     const { error } = await supabaseClient
@@ -812,6 +894,10 @@
         }
 
         function openModal() {
+            if (userScore < 10) {
+                showNoCreditsModal(10, userScore);
+                return;
+            }
             document.getElementById('add-modal').classList.remove('hidden');
         }
 
@@ -820,8 +906,17 @@
             document.getElementById('create-card-form').reset();
         }
 
+        // ==========================================
+        // CREATE POST (-10 CREDITS)
+        // ==========================================
         async function handleFormSubmit(e) {
             e.preventDefault();
+
+            if (userScore < 10) {
+                closeModal();
+                showNoCreditsModal(10, userScore);
+                return;
+            }
 
             const title = document.getElementById('modal-title').value.trim();
             const category = document.getElementById('modal-category').value;
@@ -864,7 +959,10 @@
 
                     if (error) throw error;
 
-                    showToast("Published to Supabase!");
+                    // Deduct 10 Credits on successful post
+                    await updateScore(userScore - 10);
+
+                    showToast("Published! (-10 Credits)");
                     closeModal();
                     await loadFeedData();
                 } catch (err) {
@@ -872,24 +970,25 @@
                     showToast("Failed to save to Supabase.");
                 } finally {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>Save & Publish</span>`;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>Save & Publish (-10 Credits)</span>`;
                 }
             } else {
+                await updateScore(userScore - 10);
                 dbFeed.unshift({
                     id: Date.now(),
                     ...newCardRecord,
                     comments: []
                 });
                 renderFeed();
-                showToast("Card saved to mock feed!");
+                showToast("Card saved locally! (-10 Credits)");
                 closeModal();
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>Save & Publish</span>`;
+                submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>Save & Publish (-10 Credits)</span>`;
             }
         }
 
         // ==========================================
-        // USER PROFILE ACTIVITY (Posts & Comments)
+        // USER PROFILE ACTIVITY
         // ==========================================
         async function loadUserActivity() {
             const userEmail = localStorage.getItem('userEmail');
@@ -945,8 +1044,6 @@
                                 </button>
                             </div>`;
                         }).join('') : '<p class="text-zinc-400 py-1">No comments yet.</p>';
-                    } else if (commentsError) {
-                        console.error('Error fetching comments:', commentsError);
                     }
                 } catch (err) {
                     console.error('Error fetching user activity:', err);
@@ -957,9 +1054,6 @@
             }
         }
 
-        // ==========================================
-        // DELETE POST AND COMMENT FUNCTIONS
-        // ==========================================
         async function deleteUserPost(postId) {
             if (!confirm("Are you sure you want to delete this post?")) return;
 
@@ -1020,7 +1114,7 @@
         }
 
         // ==========================================
-        // USER PROFILE, USERNAME & THEME MANAGEMENT
+        // USER PROFILE, SCORE & THEME MANAGEMENT
         // ==========================================
         async function initUserProfileAndTheme() {
             const userEmail = localStorage.getItem('userEmail');
@@ -1041,7 +1135,7 @@
                 try {
                     const { data, error } = await supabaseClient
                         .from('logins')
-                        .select('username, theme')
+                        .select('username, theme, score')
                         .eq('email', userEmail)
                         .maybeSingle();
 
@@ -1052,6 +1146,10 @@
                             usernameInput.value = data.username;
                         } else {
                             usernameDisplay.textContent = currentUsername;
+                        }
+
+                        if (data.score !== null && data.score !== undefined) {
+                            userScore = data.score;
                         }
 
                         if (data.theme !== null) {
@@ -1074,6 +1172,7 @@
                 usernameDisplay.textContent = currentUsername;
             }
             
+            document.getElementById('profile-credit-display').textContent = userScore;
             localStorage.setItem('currentUsername', currentUsername);
 
             themeToggle.addEventListener('change', async (e) => {
@@ -1087,12 +1186,11 @@
 
                 if (isSupabaseConfigured && supabaseClient && userEmail) {
                     try {
-                        const { error } = await supabaseClient
+                        await supabaseClient
                             .from('logins')
                             .update({ theme: isDark })
                             .eq('email', userEmail);
 
-                        if (error) throw error;
                         showToast("Theme preference saved!");
                     } catch (err) {
                         console.error('Error updating theme in Supabase:', err);
